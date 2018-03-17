@@ -14,10 +14,196 @@
 <![endif]-->
 <link rel="shortcut icon" href="">
 </head>
-Page
 <body>
 <!-- Place your content here -->
+<input id="original" placeholder="シャルル７世"><br>
+<input type="button" value="escape" id="escape"><br>
+<input id="escaped"><br>
+<button class="btn" data-clipboard-action="cut" data-clipboard-target="#escaped">
+    Cut to clipboard
+</button>
 <!-- SCRIPTS -->
-<!-- Example: <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+$(document.body).ready(function(){
+	new ClipboardJS('.btn');
+	$('#escape').click(function(){
+		$('#escaped').val(A2B_Arr($('#original').val()));
+	});
+});
+
+var CP1252_UCS2_Map = {
+  0x82: 0x201A,/*()#SINGLE LOW-9 QUOTATION MARK */
+  /* #UNDEFINED 0x81*/
+  0x83: 0x0192,/*()#LATIN SMALL LETTER F WITH HOOK */
+  0x84: 0x201E,/*()#DOUBLE LOW-9 QUOTATION MARK */
+  0x85: 0x2026,/*()#HORIZONTAL ELLIPSIS */
+  0x86: 0x2020,/*()#DAGGER */
+  0x87: 0x2021,/*()#DOUBLE DAGGER */
+  0x88: 0x02C6,/*()#MODIFIER LETTER CIRCUMFLEX ACCENT */
+  0x89: 0x2030,/*()#PER MILLE SIGN */
+  0x8A: 0x0160,/*()#LATIN CAPITAL LETTER S WITH CARON */
+  0x8B: 0x2039,/*()#SINGLE LEFT-POINTING ANGLE QUOTATION MARK */
+  0x8C: 0x0152,/*()#LATIN CAPITAL LIGATURE OE */
+  /* #UNDEFINED 0x8D */
+  0x8E: 0x017D,/*()#LATIN CAPITAL LETTER Z WITH CARON */
+  /* #UNDEFINED 0x8F */
+  /* #UNDEFINED 0x90 */
+  0x91:0x2018,/*()#LEFT SINGLE QUOTATION MARK */
+  0x92:0x2019,/*()#RIGHT SINGLE QUOTATION MARK */
+  0x93:0x201C,/*()#LEFT DOUBLE QUOTATION MARK */
+  0x94:0x201D,/*()#RIGHT DOUBLE QUOTATION MARK */
+  0x95:0x2022,/*()#BULLET */
+  0x96:0x2013,/*()#EN DASH */
+  0x97:0x2014,/*()#EM DASH */
+  0x98:0x02DC,/*()#SMALL TILDE */
+  0x99:0x2122,/*()#TRADE MARK SIGN */
+  0x9A:0x0161,/*()#LATIN SMALL LETTER S WITH CARON */
+  0x9B:0x203A,/*()#SINGLE RIGHT-POINTING ANGLE QUOTATION MARK */
+  0x9C:0x0153,/*()#LATIN SMALL LIGATURE OE */
+  /* #UNDEFINED 0x9D */
+  0x9E:0x017E,/*()#LATIN SMALL LETTER Z WITH CARON */
+  0x9F:0x0178/*()#LATIN CAPITAL LETTER Y WITH DIAERESIS */
+}
+
+var UCS2_CP1252_Map = {
+  0x201A:0x82,/*()#SINGLE LOW-9 QUOTATION MARK */
+  /* #UNDEFINED 0x81*/
+  0x0192:0x83,/*()#LATIN SMALL LETTER F WITH HOOK */
+  0x201E:0x84,/*()#DOUBLE LOW-9 QUOTATION MARK */
+  0x2026:0x85,/*()#HORIZONTAL ELLIPSIS */
+  0x2020:0x86,/*()#DAGGER */
+  0x2021:0x87,/*()#DOUBLE DAGGER */
+  0x20C6:0x88,/*()#MODIFIER LETTER CIRCUMFLEX ACCENT */
+  0x2030:0x89,/*()#PER MILLE SIGN */
+  0x0160:0x8A,/*()#LATIN CAPITAL LETTER S WITH CARON */
+  0x2039:0x8B,/*()#SINGLE LEFT-POINTING ANGLE QUOTATION MARK */
+  0x0152:0x8C,/*()#LATIN CAPITAL LIGATURE OE */
+  /* #UNDEFINED 0x8D */
+  0x017D:0x8E,/*()#LATIN CAPITAL LETTER Z WITH CARON */
+  /* #UNDEFINED 0x8F */
+  /* #UNDEFINED 0x90 */
+  0x2018:0x91,/*()#LEFT SINGLE QUOTATION MARK */
+  0x2019:0x92,/*()#RIGHT SINGLE QUOTATION MARK */
+  0x201C:0x93,/*()#LEFT DOUBLE QUOTATION MARK */
+  0x201D:0x94,/*()#RIGHT DOUBLE QUOTATION MARK */
+  0x2022:0x95,/*()#BULLET */
+  0x2013:0x96,/*()#EN DASH */
+  0x2014:0x97,/*()#EM DASH */
+  0x02DC:0x98,/*()#SMALL TILDE */
+  0x2122:0x99,/*()#TRADE MARK SIGN */
+  0x0161:0x9A,/*()#LATIN SMALL LETTER S WITH CARON */
+  0x203A:0x9B,/*()#SINGLE RIGHT-POINTING ANGLE QUOTATION MARK */
+  0x0153:0x9C,/*()#LATIN SMALL LIGATURE OE */
+  /* #UNDEFINED 0x9D */
+  0x017E:0x9E,/*()#LATIN SMALL LETTER Z WITH CARON */
+  0x0178:0x9F/*()#LATIN CAPITAL LETTER Y WITH DIAERESIS */
+}
+
+function A2B_Arr(string){
+  var result = "";
+  
+  var len = string.length;
+  for(var i=0;i<len;i++){
+    /* 文字 */
+    var chr = string[i];
+    /* 文字コード */
+    var cp = chr.charCodeAt(0);
+    /* 上位バイト */
+    var high = (cp >> 8) & 0x000000FF;
+    var low  = cp & 0x000000FF;
+    
+    /* 2byteじゃない */
+    if(high === 0){
+      result +=chr;
+      continue;
+    }
+    
+    var escapeChr = 0x10;
+    /* high byteより決定 */
+    switch(high){
+      case 0xA4:
+      case 0xA3:
+      case 0xA7:
+      case 0x24:
+      case 0x5B:
+      case 0:
+      case 0x5C:
+      case 0x20:
+      case 0x0D:
+      case 0x0A:
+      case 0x22:
+      case 0x7B:
+      case 0x7D:
+      case 0x40:
+      case 0x3B:
+      case 0x80:
+      case 0x7E:
+      case 0xBD:
+        escapeChr+=2;
+        break;
+      default:
+        break;
+    }
+    
+    /* low byteより決定 */
+    switch(low){
+      case 0xA4:
+      case 0xA3:
+      case 0xA7:
+      case 0x24:
+      case 0x5B:
+      case 0x5C:
+      case 0x20:
+      case 0x0D:
+      case 0x0A:
+      case 0x22:
+      case 0x7B:
+      case 0x7D:
+      case 0x40:
+      case 0x3B:
+      case 0:
+      case 0x80:
+      case 0x7E:
+      case 0xBD:
+        escapeChr++;
+        break;
+      default:
+        break;
+    }
+
+    switch(escapeChr){
+      case 0x11:
+        low += 15;
+        break;
+      case 0x12:
+        high -= 9;
+        break;
+      case 0x13:
+        low += 15;
+        high -= 9;
+        break;
+      case 0x10:
+      default:
+        break;
+    }
+    result += String.fromCharCode(escapeChr);
+
+    if(low in CP1252_UCS2_Map){
+      low = CP1252_UCS2_Map[low];
+    }
+    if(high in CP1252_UCS2_Map){
+      high = CP1252_UCS2_Map[high];
+    }
+    
+    result += String.fromCharCode(low);
+    result += String.fromCharCode(high);
+  }
+  
+  return result;
+}
+
+</script>
 </body>
 </html>
