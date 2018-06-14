@@ -140,7 +140,7 @@ function A2B_Arr(string){
       case 0x3B:
       case 0x80:
       case 0x7E:
-      case 0xBD:
+      case 0x2F:
         escapeChr+=2;
         break;
       default:
@@ -166,7 +166,7 @@ function A2B_Arr(string){
       case 0:
       case 0x80:
       case 0x7E:
-      case 0xBD:
+      case 0x2F:
         escapeChr++;
         break;
       default:
@@ -175,13 +175,13 @@ function A2B_Arr(string){
 
     switch(escapeChr){
       case 0x11:
-        low += 15;
+        low += 14;
         break;
       case 0x12:
         high -= 9;
         break;
       case 0x13:
-        low += 15;
+        low += 14;
         high -= 9;
         break;
       case 0x10:
